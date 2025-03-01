@@ -1,0 +1,70 @@
+---
+- name: Installing wireguard
+  tags:
+    - never
+    - install
+  block:
+    - name: Install WireGuard
+      ansible.builtin.apt:
+        name: wireguard
+        state: present
+
+    - name: Generate WireGuard private key
+      ansible.builtin.shell:
+        cmd: "wg genkey | tee {{ private_key_path }} | wg pubkey > {{ public_key_path }}"
+        creates: "{{ private_key_path }}"
+
+    - name: Generate WireGuard preshared key
+      ansible.builtin.shell:
+        cmd: "wg genpsk > {{ preshared_key_path }}"
+        creates: "{{ preshared_key_path }}"
+
+    - name: Generate WireGuard client private and public keys if missing
+      ansible.builtin.shell:
+        cmd: "wg genkey | tee {{ client_private_key_path }} | wg pubkey > {{ client_public_key_path }}"
+        creates: "{{ client_private_key_path }}"
+
+    - name: Ensure client public key file exists
+      ansible.builtin.file:
+        path: "{{ client_public_key_path }}"
+        state: touch
+        mode: '0600'
+
+    - name: Read private key
+      ansible.builtin.slurp:
+        src: "{{ private_key_path }}"
+      register: private_key
+
+    - name: Read public key
+      ansible.builtin.slurp:
+        src: "{{ public_key_path }}"
+      register: public_key
+
+    - name: Read preshared key
+      ansible.builtin.slurp:
+        src: "{{ preshared_key_path }}"
+      register: preshared_key
+
+    - name: Read client public key
+      ansible.builtin.slurp:
+        src: "{{ client_public_key_path }}"
+      register: client_public_key
+      ignore_errors: true
+
+    - name: Debug client public key
+      ansible.builtin.debug:
+        msg: "Client public key: {{ client_public_key.content | b64decode | default('Not Found') }}"
+
+    - name: Configure WireGuard
+      ansible.builtin.template:
+        src: wg0.conf.j2
+        dest: "{{ config_path }}"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Enable and start WireGuard service
+      ansible.builtin.systemd:
+        name: "wg-quick@{{ wireguard_interface }}"
+        enabled: true
+        state: started

@@ -1,0 +1,6 @@
+---
+- name: Installing SYS Ops Apps
+  hosts: vpn_server
+  gather_facts: yes
+  roles:
+    - wireguard

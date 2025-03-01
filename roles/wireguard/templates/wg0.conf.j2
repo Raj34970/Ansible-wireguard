@@ -1,0 +1,10 @@
+[Interface]
+Address = {{ server_ip }}
+SaveConfig = true
+ListenPort = {{ wireguard_port }}
+PrivateKey = {{ private_key.content | b64decode }}
+
+[Peer]
+PublicKey = {{ client_public_key.content | b64decode }}
+PresharedKey = {{ preshared_key.content | b64decode }}
+AllowedIPs = {{ client_allowed_ip }}
