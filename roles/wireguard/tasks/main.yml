@@ -1,3 +1,4 @@
+# code:language=ansible
 ---
 - name: Including tasks for the Wireguard install
   ansible.builtin.include_tasks: setup_wireguard.yml

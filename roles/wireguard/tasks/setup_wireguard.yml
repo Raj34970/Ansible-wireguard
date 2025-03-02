@@ -1,3 +1,4 @@
+# code:language=ansible
 ---
 - name: Installing wireguard
   tags:
@@ -11,7 +12,7 @@
 
     - name: Generate WireGuard private key
       ansible.builtin.shell:
-        cmd: "wg genkey | tee {{ private_key_path }} | wg pubkey > {{ public_key_path }}"
+        cmd: "set -o pipefail wg genkey | tee {{ private_key_path }} | wg pubkey > {{ public_key_path }}"
         creates: "{{ private_key_path }}"
 
     - name: Generate WireGuard preshared key
@@ -21,7 +22,7 @@
 
     - name: Generate WireGuard client private and public keys if missing
       ansible.builtin.shell:
-        cmd: "wg genkey | tee {{ client_private_key_path }} | wg pubkey > {{ client_public_key_path }}"
+        cmd: "set -o pipefail wg genkey | tee {{ client_private_key_path }} | wg pubkey > {{ client_public_key_path }}"
         creates: "{{ client_private_key_path }}"
 
     - name: Ensure client public key file exists
